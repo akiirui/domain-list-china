@@ -1,0 +1,110 @@
+name: Build
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * 0"
+
+env:
+  LIST_CHINA: "https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf"
+  LIST_APPLE: "https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/apple.china.conf"
+  LIST_GOOGLE: "https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/google.china.conf"
+
+jobs:
+  build:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set variables
+        run: |
+          echo "RELEASE_TIME=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout v2fly/domain-list-community
+        uses: actions/checkout@v4
+        with:
+          repository: v2fly/domain-list-community
+          path: community
+
+      - name: Checkout akiirui/meta-rules-converter
+        uses: actions/checkout@v4
+        with:
+          repository: akiirui/meta-rules-converter
+          path: convert
+
+      - name: Download latest lists
+        run: |
+          mkdir -p data
+          curl -sSL "${LIST_CHINA}"  | grep 'server=' | cut -f 2 -d '/' | sed 's/^/domain:/' > data/china
+          curl -sSL "${LIST_APPLE}"  | grep 'server=' | cut -f 2 -d '/' | sed 's/^/domain:/' > data/apple
+          curl -sSL "${LIST_GOOGLE}" | grep 'server=' | cut -f 2 -d '/' | sed 's/^/domain:/' > data/google
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+          cache-dependency-path: ./community/go.sum
+
+      - name: Generate geosite
+        run: |
+          mkdir -p release/geosite/
+          cd community
+          go run ./ --datapath=../data --outputdir=../release/geosite/
+
+      - name: Convert mihomo ruleset
+        run: |
+          mkdir -p release/mihomo/
+          cd convert
+          go run ./ geosite -f ../release/geosite/dlc.dat -o ../release/mihomo/
+
+      - name: Convert singbox ruleset
+        run: |
+          mkdir -p release/sing-box/
+          cd convert
+          go run ./ geosite -f ../release/geosite/dlc.dat -o ../release/sing-box/ -t sing-box
+
+      - name: Push assets to "geosite" branch
+        run: |
+          cd release/geosite/ || exit 1
+          git init
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "3736910+akiirui@users.noreply.github.com"
+          git checkout -b geosite
+          git add .
+          git commit -am "${{ env.RELEASE_TIME }}"
+          git remote add origin "https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}"
+          git push -f -u origin geosite
+
+      - name: Push assets to "mihomo" branch
+        run: |
+          cd release/mihomo/ || exit 1
+          git init
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "3736910+akiirui@users.noreply.github.com"
+          git checkout -b mihomo
+          git add .
+          git commit -m "${{ env.RELEASE_TIME }}"
+          git remote add origin "https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}"
+          git push -f -u origin mihomo
+
+      - name: Push assets to "sing-box" branch
+        run: |
+          cd release/sing-box/ || exit 1
+          git init
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "3736910+akiirui@users.noreply.github.com"
+          git checkout -b sing-box
+          git add .
+          git commit -am "${{ env.RELEASE_TIME }}"
+          git remote add origin "https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}"
+          git push -f -u origin sing-box
+
+      - name: Publish release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "release/mihomo/*,release/sing-box/*,release/geosite/*"
+          body: ${{ env.RELEASE_TIME }}
+          name: ${{ env.RELEASE_TIME }}
+          tag: "latest"
+          allowUpdates: true
