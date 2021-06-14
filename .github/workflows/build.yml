@@ -48,7 +48,8 @@ jobs:
       - name: Publish release
         uses: ncipollo/release-action@v1
         with:
+          artifacts: "dlc.dat,sha512sum"
+          body: ${{ env.RELEASE_NAME }}
           name: ${{ env.RELEASE_NAME }}
           tag: ${{ env.RELEASE_NAME }}
-          artifacts: "dlc.dat,sha512sum"
           token: ${{ secrets.GITHUB_TOKEN }}
