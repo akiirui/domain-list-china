@@ -2,7 +2,7 @@
 
 Domain list based on [felixonmars/dnsmasq-china-list][links-felix-list], Generate by [v2fly/domain-list-community][links-v2fly-list] tools.
 
-[![v2ray-domain-list-china][badge-aur]](links-aur)
+[![v2ray-domain-list-china][badge-aur]][links-aur]
 
 ## Usage
 
