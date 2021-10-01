@@ -1,4 +1,4 @@
-name: Build dlc.dat
+name: Build
 on:
   workflow_dispatch:
   schedule:
@@ -7,43 +7,47 @@ on:
     branches:
       - main
     paths-ignore:
-      - "**/README.md"
+      - "README.md"
+      - "LICENSE*"
+      - "data/*"
 jobs:
-  build:
+  pull:
+    name: Download domain list
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: ^1.16
+      - name: Set variables
+        run: |
+          echo "RELEASE_NAME=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+          echo "CHINA_LIST=https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf" >> $GITHUB_ENV
+          echo "APPLE_LIST=https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/apple.china.conf" >> $GITHUB_ENV
+          echo "GOOGLE_LIST=https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/google.china.conf" >> $GITHUB_ENV
+        shell: bash
 
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Checkout dnsmasq-china-list
-        uses: actions/checkout@v2
-        with:
-          repository: felixonmars/dnsmasq-china-list
-          path: dnsmasq-china-list
-
-      - name: Generate raw domain list
+      - name: Download latest lists
         run: |
-          cd dnsmasq-china-list || exit 1
-          make raw
-          mkdir data
-          mv accelerated-domains.china.raw.txt data/china
-          mv apple.china.raw.txt data/apple
-          mv google.china.raw.txt data/google
+          curl -sSL "${CHINA_LIST}"  | cut -f 2 -d '/' > data/china
+          curl -sSL "${APPLE_LIST}"  | cut -f 2 -d '/' > data/apple
+          curl -sSL "${GOOGLE_LIST}" | cut -f 2 -d '/' > data/google
+
+      - name: Push to main
+        run: |
+          git config --global user.email "3736910+akiirui@users.noreply.github.com"
+          git config --global user.name "Akatsuki Rui"
+          git commit -am "${{ env.RELEASE_NAME }}"
+          git push origin main
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.17
 
       - name: Generate dlc.dat
         run: |
-          go run ./ --datapath=./dnsmasq-china-list/data
+          go run ./ --datapath=./data
           sha512sum dlc.dat > sha512sum
-
-      - name: Set variables
-        run: |
-          echo "RELEASE_NAME=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
-        shell: bash
 
       - name: Publish release
         uses: ncipollo/release-action@v1
