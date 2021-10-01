@@ -11,8 +11,8 @@ on:
       - "LICENSE*"
       - "data/*"
 jobs:
-  pull:
-    name: Download domain list
+  build:
+    name: Build and Publish
     runs-on: ubuntu-latest
     steps:
       - name: Set variables
