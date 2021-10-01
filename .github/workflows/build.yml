@@ -33,6 +33,7 @@ jobs:
           curl -sSL "${GOOGLE_LIST}" | cut -f 2 -d '/' > data/google
 
       - name: Push to main
+        continue-on-error: true
         run: |
           git config --global user.email "3736910+akiirui@users.noreply.github.com"
           git config --global user.name "Akatsuki Rui"
