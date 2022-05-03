@@ -3,7 +3,7 @@ module github.com/v2fly/domain-list-community
 go 1.18
 
 require (
-	github.com/v2fly/v2ray-core/v5 v5.0.4
+	github.com/v2fly/v2ray-core/v5 v5.0.5
 	google.golang.org/protobuf v1.28.0
 )
 
