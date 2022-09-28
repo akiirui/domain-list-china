@@ -10,6 +10,7 @@ on:
       - "README.md"
       - "LICENSE*"
       - "data/*"
+
 jobs:
   build:
     name: Build and Publish
@@ -36,7 +37,7 @@ jobs:
         continue-on-error: true
         run: |
           git config --global user.name "github-actions[bot]"
-          git config --global user.email "3736910+github-actions[bot]@users.noreply.github.com"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -am "${{ env.RELEASE_NAME }}"
           git push origin main
 
