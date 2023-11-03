@@ -4,27 +4,6 @@ Domain list based on [felixonmars/dnsmasq-china-list][links-felix-list], Generat
 
 [![v2ray-domain-list-china][badge-aur]][links-aur]
 
-## Usage
-
-```json
-{
-  "routing": {
-    "domainStrategy": "AsIs",
-    "rules": [
-      {
-        "type": "field",
-        "outboundTag": "direct",
-        "domain": [
-          "ext:dlc.dat:china",
-          "ext:dlc.dat:apple",
-          "ext:dlc.dat:google"
-        ]
-      }
-    ]
-  }
-}
-```
-
 ## Thanks
 
 - [felixonmars/dnsmasq-china-list][links-felix-list]
