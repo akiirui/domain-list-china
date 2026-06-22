@@ -19,16 +19,16 @@ jobs:
           echo "RELEASE_TIME=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Checkout v2fly/domain-list-community
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: v2fly/domain-list-community
           path: community
 
       - name: Checkout akiirui/meta-rules-converter
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: akiirui/meta-rules-converter
           path: convert
